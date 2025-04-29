@@ -5,9 +5,13 @@
 #include "addons/TokenHelper.h"
 #include "addons/RTDBHelper.h"
 #include <Servo.h>
+#include <LiquidCrystal_I2C.h>
 
-#define mainBulb D0
-#define reservedBulb D1
+#define mainBulb D3
+#define reservedBulb D4
+#define gas A0
+
+LiquidCrystal_I2C lcd(0x3F, 16, 2);
 
 #define WIFI_SSID "G-Coder"
 #define WIFI_PASSWORD "G-Coder@02"
@@ -20,13 +24,18 @@ FirebaseAuth auth;
 FirebaseConfig config;
 
 bool signupOK = false;
-int boilSize = 0;
-int transferSize = 0;
+
+int data = 0;
+int sensorThres = 100;
 
 
 unsigned long sendDataPrevMillis = 0;
 
 void setup() {
+  lcd.begin(16, 2);
+  lcd.init();
+  lcd.clear();         
+  lcd.backlight();
   pinMode(mainBulb, OUTPUT);
   pinMode(reservedBulb, OUTPUT);
   digitalWrite(mainBulb, HIGH);
@@ -58,11 +67,30 @@ void setup() {
   Firebase.reconnectWiFi(true);
 }
 
+void gasValue(){
+  int data = analogRead(gas);
+  Serial.print("Gas: ");
+  Serial.println(data);
+  lcd.setCursor(2,0);   
+  lcd.print("Gas: ");
+  lcd.println(data);
+  Firebase.RTDB.setInt(&fbdo, "monitor/gas", data);
+  if (data > 999) {
+    Serial.println("Alert gas leaked!");
+    lcd.clear();
+    lcd.setCursor(5,0);   
+    lcd.print("Alert!");
+    lcd.setCursor(2,0);   
+    lcd.print("Gas leaked");
+  }
+}
+
 
 void loop() {
   if (Firebase.ready() && signupOK && (millis() - sendDataPrevMillis > 500 || sendDataPrevMillis == 0)) {
     sendDataPrevMillis = millis();
 
+    gasValue();
     if (Firebase.RTDB.getBool(&fbdo, "controls/mainBulb")) {
       if (fbdo.dataType() == "boolean"){
       bool mainBulbStateStr = fbdo.boolData();
