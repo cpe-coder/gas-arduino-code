@@ -13,11 +13,11 @@
 
 LiquidCrystal_I2C lcd(0x3F, 16, 2);
 
-#define WIFI_SSID "G-Coder"
-#define WIFI_PASSWORD "G-Coder@02"
+#define WIFI_SSID ""
+#define WIFI_PASSWORD ""
 
-#define API_KEY "AIzaSyBNZ1aVpWALpintHstXLPC9uyC992zzRfw"
-#define DATABASE_URL "gas-monitoring-a2b73-default-rtdb.firebaseio.com/"
+#define API_KEY ""
+#define DATABASE_URL ""
 
 FirebaseData fbdo;
 FirebaseAuth auth;
